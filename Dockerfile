@@ -30,8 +30,5 @@ COPY . .
 # Make gradlew executable
 RUN chmod +x ./gradlew
 
-# Build the APK
-RUN ./gradlew assembleDebug
-
 # Command to run when container starts
 CMD ["./gradlew", "assembleDebug"]

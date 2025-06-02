@@ -11,11 +11,15 @@ echo "Building PDF Viewer Android App..."
 echo "Building container image..."
 podman build -t pdf-viewer-android .
 
-# Create container and copy APK
-echo "Extracting APK from container..."
-CONTAINER_ID=$(podman create pdf-viewer-android)
+# Run container to build APK
+echo "Running build in container..."
+CONTAINER_ID=$(podman run -d pdf-viewer-android)
+
+# Wait for build to complete
+podman wait $CONTAINER_ID
 
 # Copy the APK from container to host
+echo "Extracting APK from container..."
 podman cp $CONTAINER_ID:/app/app/build/outputs/apk/debug/app-debug.apk ./pdf-viewer.apk
 
 # Clean up container
