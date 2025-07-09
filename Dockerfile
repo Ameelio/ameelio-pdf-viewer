@@ -31,4 +31,4 @@ COPY . .
 RUN chmod +x ./gradlew
 
 # Command to run when container starts
-CMD ["./gradlew", "assembleDebug"]
+CMD ["./gradlew", "assembleDebug", "assembleRelease"]
