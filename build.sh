@@ -11,6 +11,10 @@ echo "Building PDF Viewer Android App..."
 echo "Building container image..."
 podman build -t pdf-viewer-android .
 
+# Clean up any existing container with the same name
+echo "Cleaning up existing containers..."
+podman rm -f pdf-viewer-build 2>/dev/null || true
+
 # Run container to build APK (with output visible)
 echo "Running build in container..."
 CONTAINER_ID=$(podman run --name pdf-viewer-build pdf-viewer-android)
