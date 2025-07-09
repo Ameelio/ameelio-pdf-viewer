@@ -20,8 +20,20 @@ echo "Running build in container..."
 if podman run --name pdf-viewer-build pdf-viewer-android; then
     # Copy the APKs from container to host
     echo "Extracting APKs from container..."
-    podman cp pdf-viewer-build:/app/app/build/outputs/apk/debug/app-debug.apk ./ameelio-pdf-viewer-debug.apk
-    podman cp pdf-viewer-build:/app/app/build/outputs/apk/release/app-release.apk ./ameelio-pdf-viewer.apk
+    
+    # Copy debug APK
+    if podman cp pdf-viewer-build:/app/app/build/outputs/apk/debug/app-debug.apk ./ameelio-pdf-viewer-debug.apk; then
+        echo "✅ Debug APK copied successfully"
+    else
+        echo "❌ Failed to copy debug APK"
+    fi
+    
+    # Copy release APK
+    if podman cp pdf-viewer-build:/app/app/build/outputs/apk/release/app-release.apk ./ameelio-pdf-viewer.apk; then
+        echo "✅ Release APK copied successfully"
+    else
+        echo "❌ Failed to copy release APK"
+    fi
     
     # Clean up container
     podman rm pdf-viewer-build
