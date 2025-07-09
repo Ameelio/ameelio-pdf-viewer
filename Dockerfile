@@ -13,6 +13,7 @@ ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platfo
 # Download and install Android command line tools
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
     wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip && \
+    echo "bd1aa17c7ef10066949c88dc6c9c8d536be27f992a1f3b5a584f9bd2ba5646a0  commandlinetools-linux-9477386_latest.zip" | sha256sum -c && \
     unzip commandlinetools-linux-9477386_latest.zip && \
     mv cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \
     rm commandlinetools-linux-9477386_latest.zip
