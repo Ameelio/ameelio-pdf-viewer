@@ -5,7 +5,8 @@
       "Bash(cp:*)",
       "Bash(chmod:*)",
       "Bash(ls:*)",
-      "Bash(./build.sh)"
+      "Bash(./build.sh)",
+      "Bash(./test.sh:*)"
     ],
     "deny": []
   }

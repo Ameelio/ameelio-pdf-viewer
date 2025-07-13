@@ -164,9 +164,15 @@ public class SecurityTest {
         // This is a security requirement to prevent data leakage
         
         // Verify that WRITE_EXTERNAL_STORAGE permission is not requested
-        String[] permissions = context.getPackageManager()
-                .getPackageInfo(context.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
-                .requestedPermissions;
+        String[] permissions;
+        try {
+            permissions = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
+                    .requestedPermissions;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            fail("Package not found: " + e.getMessage());
+            return;
+        }
         
         if (permissions != null) {
             for (String permission : permissions) {

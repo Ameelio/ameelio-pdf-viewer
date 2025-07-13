@@ -50,7 +50,7 @@ public class PdfViewerActivityTest {
     public void testSecurityFeatures_NoBackupAllowed() {
         // Verify that backup is disabled for security
         assertFalse("Backup should be disabled for security", 
-                   activity.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_ALLOW_BACKUP);
+                   (activity.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_ALLOW_BACKUP) != 0);
     }
 
     @Test
@@ -96,9 +96,15 @@ public class PdfViewerActivityTest {
     @Test
     public void testNoNetworkPermissions() {
         // Verify that the app doesn't request network permissions (security requirement)
-        String[] permissions = activity.getPackageManager()
-                .getPackageInfo(activity.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
-                .requestedPermissions;
+        String[] permissions;
+        try {
+            permissions = activity.getPackageManager()
+                    .getPackageInfo(activity.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
+                    .requestedPermissions;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            fail("Package not found: " + e.getMessage());
+            return;
+        }
         
         if (permissions != null) {
             for (String permission : permissions) {
@@ -113,9 +119,15 @@ public class PdfViewerActivityTest {
     @Test
     public void testMinimalPermissions() {
         // Verify that only necessary permissions are requested
-        String[] permissions = activity.getPackageManager()
-                .getPackageInfo(activity.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
-                .requestedPermissions;
+        String[] permissions;
+        try {
+            permissions = activity.getPackageManager()
+                    .getPackageInfo(activity.getPackageName(), android.content.pm.PackageManager.GET_PERMISSIONS)
+                    .requestedPermissions;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            fail("Package not found: " + e.getMessage());
+            return;
+        }
         
         if (permissions != null) {
             // Only READ_EXTERNAL_STORAGE should be requested
