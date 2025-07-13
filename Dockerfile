@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk
+FROM docker.io/eclipse-temurin:17-jdk
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
