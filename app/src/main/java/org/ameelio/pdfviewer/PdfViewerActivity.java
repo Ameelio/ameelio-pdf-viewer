@@ -131,13 +131,11 @@ public class PdfViewerActivity extends AppCompatActivity {
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setPadding(16, 8, 16, 8);
             
-            // Set minimum width and height to ensure proper zoom behavior
+            // Set layout parameters to allow proper zoom behavior
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            params.width = Math.max(targetWidth, getResources().getDisplayMetrics().widthPixels);
-            params.height = Math.max(targetHeight, getResources().getDisplayMetrics().heightPixels);
             imageView.setLayoutParams(params);
             
             pdfContainer.addView(imageView);

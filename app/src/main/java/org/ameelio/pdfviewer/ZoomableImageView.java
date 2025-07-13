@@ -62,11 +62,16 @@ public class ZoomableImageView extends AppCompatImageView implements View.OnTouc
         
         PointF curr = new PointF(event.getX(), event.getY());
         
-        switch (event.getAction()) {
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 savedMatrix.set(matrix);
                 start.set(curr);
                 mode = Mode.DRAG;
+                break;
+                
+            case MotionEvent.ACTION_POINTER_DOWN:
+                // Second finger down - don't interfere with scale gesture
+                mode = Mode.NONE;
                 break;
                 
             case MotionEvent.ACTION_MOVE:
