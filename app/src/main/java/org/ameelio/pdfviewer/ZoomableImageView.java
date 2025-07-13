@@ -50,10 +50,9 @@ public class ZoomableImageView extends AppCompatImageView implements View.OnTouc
     private void init() {
         super.setClickable(true);
         scaleGestureDetector = new ScaleGestureDetector(getContext(), this);
-        matrix.setTranslate(1f, 1f);
-        setImageMatrix(matrix);
         setScaleType(ScaleType.MATRIX);
         setOnTouchListener(this);
+        resetZoom();
     }
     
     @Override
@@ -104,11 +103,13 @@ public class ZoomableImageView extends AppCompatImageView implements View.OnTouc
         // Limit scale between MIN_SCALE and MAX_SCALE
         if (newScale < MIN_SCALE) {
             scaleFactor = MIN_SCALE / currentScale;
+            newScale = MIN_SCALE;
         } else if (newScale > MAX_SCALE) {
             scaleFactor = MAX_SCALE / currentScale;
+            newScale = MAX_SCALE;
         }
         
-        currentScale *= scaleFactor;
+        currentScale = newScale;
         
         matrix.postScale(scaleFactor, scaleFactor, detector.getFocusX(), detector.getFocusY());
         checkBounds();
@@ -178,7 +179,7 @@ public class ZoomableImageView extends AppCompatImageView implements View.OnTouc
     public void resetZoom() {
         currentScale = 1.0f;
         matrix.reset();
-        matrix.setTranslate(1f, 1f);
+        centerImage();
         setImageMatrix(matrix);
     }
     
@@ -187,5 +188,33 @@ public class ZoomableImageView extends AppCompatImageView implements View.OnTouc
      */
     public float getCurrentScale() {
         return currentScale;
+    }
+    
+    /**
+     * Center the image in the view
+     */
+    private void centerImage() {
+        if (getDrawable() != null) {
+            float imageWidth = getDrawable().getIntrinsicWidth();
+            float imageHeight = getDrawable().getIntrinsicHeight();
+            float viewWidth = getWidth();
+            float viewHeight = getHeight();
+            
+            // Only center if view has been laid out
+            if (viewWidth > 0 && viewHeight > 0) {
+                float dx = (viewWidth - imageWidth) / 2;
+                float dy = (viewHeight - imageHeight) / 2;
+                matrix.setTranslate(dx, dy);
+            }
+        }
+    }
+    
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (changed) {
+            centerImage();
+            setImageMatrix(matrix);
+        }
     }
 }
