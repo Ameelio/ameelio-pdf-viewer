@@ -63,7 +63,10 @@ If you have Android SDK installed:
 Run the comprehensive test suite to verify functionality and security:
 
 ```bash
-# Run all tests
+# Run all tests in container (recommended)
+./test.sh
+
+# Run all tests locally
 ./gradlew check
 
 # Run unit tests only

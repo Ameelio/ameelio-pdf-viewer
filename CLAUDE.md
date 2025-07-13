@@ -60,11 +60,19 @@ The Dockerfile creates a complete Android build environment:
 
 ## Testing Commands
 
+- **Run all tests in container**: `./test.sh` (recommended)
 - **Run unit tests**: `./gradlew test`
 - **Run instrumentation tests**: `./gradlew connectedAndroidTest`
 - **Run all tests**: `./gradlew check`
 - **Run security tests**: `./gradlew testDebugUnitTest --tests="com.pdfviewer.SecurityTest"`
 - **Generate test report**: `./gradlew testDebugUnitTest jacocoTestReport`
+
+### Test Script
+The `./test.sh` script provides containerized testing similar to the build process:
+- Runs unit tests in a clean container environment
+- Extracts test reports to `./test-reports/` directory
+- Provides detailed test output and failure information
+- Supports test result XML and coverage reports
 
 ## Installation Commands
 
