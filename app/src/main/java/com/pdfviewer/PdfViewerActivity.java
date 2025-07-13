@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.view.View;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -23,6 +24,7 @@ import java.io.IOException;
 public class PdfViewerActivity extends AppCompatActivity {
     
     private Button selectFileButton;
+    private HorizontalScrollView horizontalScrollView;
     private ScrollView scrollView;
     private LinearLayout pdfContainer;
     private TextView errorText;
@@ -36,6 +38,7 @@ public class PdfViewerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pdf_viewer);
         
         selectFileButton = findViewById(R.id.selectFileButton);
+        horizontalScrollView = findViewById(R.id.horizontalScrollView);
         scrollView = findViewById(R.id.scrollView);
         pdfContainer = findViewById(R.id.pdfContainer);
         errorText = findViewById(R.id.errorText);
@@ -99,7 +102,7 @@ public class PdfViewerActivity extends AppCompatActivity {
     
     private void hideFileSelector() {
         selectFileButton.setVisibility(View.GONE);
-        scrollView.setVisibility(View.VISIBLE);
+        horizontalScrollView.setVisibility(View.VISIBLE);
         errorText.setVisibility(View.GONE);
     }
     
@@ -115,17 +118,27 @@ public class PdfViewerActivity extends AppCompatActivity {
             int width = page.getWidth();
             int height = page.getHeight();
             
-            int targetWidth = getResources().getDisplayMetrics().widthPixels - 32;
+            // Use higher resolution for better zoom quality
+            int targetWidth = Math.max(getResources().getDisplayMetrics().widthPixels - 32, width);
             float scale = (float) targetWidth / width;
             int targetHeight = (int) (height * scale);
             
             Bitmap bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
             
-            ImageView imageView = new ImageView(this);
+            ZoomableImageView imageView = new ZoomableImageView(this);
             imageView.setImageBitmap(bitmap);
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setPadding(16, 8, 16, 8);
+            
+            // Set minimum width and height to ensure proper zoom behavior
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.width = Math.max(targetWidth, getResources().getDisplayMetrics().widthPixels);
+            params.height = Math.max(targetHeight, getResources().getDisplayMetrics().heightPixels);
+            imageView.setLayoutParams(params);
             
             pdfContainer.addView(imageView);
             page.close();
@@ -134,7 +147,7 @@ public class PdfViewerActivity extends AppCompatActivity {
     
     private void showError() {
         selectFileButton.setVisibility(View.GONE);
-        scrollView.setVisibility(View.GONE);
+        horizontalScrollView.setVisibility(View.GONE);
         errorText.setVisibility(View.VISIBLE);
     }
     
