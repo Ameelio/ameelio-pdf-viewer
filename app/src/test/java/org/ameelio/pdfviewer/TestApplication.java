@@ -1,4 +1,4 @@
-package com.pdfviewer;
+package org.ameelio.pdfviewer;
 
 import android.app.Application;
 

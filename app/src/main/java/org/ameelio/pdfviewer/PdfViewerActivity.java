@@ -1,4 +1,4 @@
-package com.pdfviewer;
+package org.ameelio.pdfviewer;
 
 import android.content.Intent;
 import android.graphics.Bitmap;

@@ -1,4 +1,4 @@
-package com.pdfviewer;
+package org.ameelio.pdfviewer;
 
 import android.content.Context;
 import android.content.Intent;
@@ -50,7 +50,7 @@ public class PdfViewerActivityInstrumentationTest {
     public void useAppContext() {
         // Context of the app under test
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.pdfviewer", appContext.getPackageName());
+        assertEquals("org.ameelio.pdfviewer", appContext.getPackageName());
     }
 
     @Test

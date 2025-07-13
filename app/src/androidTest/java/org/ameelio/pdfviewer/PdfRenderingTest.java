@@ -1,4 +1,4 @@
-package com.pdfviewer;
+package org.ameelio.pdfviewer;
 
 import android.content.Context;
 import android.content.Intent;
@@ -171,7 +171,7 @@ public class PdfRenderingTest {
         // This would be checked in release builds
         
         // 3. Proper package name
-        assertEquals("Package name should be correct", "com.pdfviewer", context.getPackageName());
+        assertEquals("Package name should be correct", "org.ameelio.pdfviewer", context.getPackageName());
     }
 
     @Test

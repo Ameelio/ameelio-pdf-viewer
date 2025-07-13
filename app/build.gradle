@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdk 34
-    namespace 'com.pdfviewer'
+    namespace 'org.ameelio.pdfviewer'
 
     defaultConfig {
-        applicationId "com.pdfviewer"
+        applicationId "org.ameelio.pdfviewer"
         minSdk 21
         targetSdk 34
         versionCode 1
