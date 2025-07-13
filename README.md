@@ -17,11 +17,13 @@ This PDF viewer is designed with security and simplicity in mind:
 
 ## Features
 
-- Opens PDF files from file managers, email attachments, and other apps
-- Displays all pages in a scrollable view
-- Automatically scales pages to fit screen width
-- Supports standard PDF files via Android's native PdfRenderer API
-- No network permissions or external dependencies
+- **File picker interface**: Launch the app directly to browse and select PDF files from local storage
+- **Intent-based opening**: Opens PDF files from file managers, email attachments, and other apps
+- **Secure file browsing**: Uses Android's document picker with no file access history or persistence
+- **Scrollable display**: Shows all pages in a scrollable view
+- **Auto-scaling**: Automatically scales pages to fit screen width
+- **Native rendering**: Uses Android's built-in PdfRenderer API for reliable PDF display
+- **No network access**: Completely offline with no network permissions or external dependencies
 
 ## Build Instructions
 
@@ -68,6 +70,14 @@ If you have Android SDK installed:
 
 ### Usage
 
+#### Method 1: Direct Launch (File Picker)
+1. Launch the "PDF Viewer" app from your app drawer
+2. Tap "Select PDF File" to browse local storage
+3. Choose a PDF file from the document picker
+4. The PDF will display in a scrollable view
+5. Use the back button to return to file selection or exit
+
+#### Method 2: Open from Other Apps
 1. Open any PDF file from your file manager, email, or other app
 2. Select "PDF Viewer" when prompted to choose an app
 3. The PDF will open and display all pages in a scrollable view
@@ -84,11 +94,14 @@ If you have Android SDK installed:
 
 This app is designed for high-security environments:
 
-- No text input fields or keyboards
-- No network access or internet permissions
-- No external dependencies beyond Android framework
-- Read-only PDF display with no editing capabilities
-- Minimal permissions (only file reading)
+- **No user input persistence**: File selections and app state are never saved or cached
+- **No history tracking**: No record of previously opened files or user interactions
+- **No text input fields**: No keyboard interactions or text entry capabilities
+- **No network access**: No internet permissions or external network dependencies
+- **No backups**: Android backup functionality is disabled to prevent data persistence
+- **Minimal permissions**: Only file reading access, no other system permissions
+- **Read-only display**: PDF files are displayed without any editing capabilities
+- **Secure file picker**: Uses Android's document picker with no access to file system history
 
 ## License
 

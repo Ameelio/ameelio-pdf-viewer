@@ -23,17 +23,20 @@ This is a single-activity Android app that renders PDF files using Android's nat
 ### Key Components
 
 - **PdfViewerActivity** (`app/src/main/java/com/pdfviewer/PdfViewerActivity.java`): Main activity that handles PDF rendering
-  - Receives PDF URIs via Intent
+  - Receives PDF URIs via Intent OR provides file picker interface
   - Renders each PDF page as a bitmap in a scrollable LinearLayout
   - Handles file access permissions and error states
   - Automatically scales pages to fit screen width
+  - Implements secure file picker with no persistence or history tracking
+  - Prevents any user input or state from being saved between sessions
 
 ### Android Configuration
 
 - **Target SDK**: 34 (Android 14)
 - **Min SDK**: 21 (Android 5.0)
 - **Permissions**: `READ_EXTERNAL_STORAGE` only (no network or other permissions for security)
-- **Intent Filters**: Registers as default PDF viewer for:
+- **Intent Filters**: Registers as launcher app and default PDF viewer for:
+  - `android.intent.action.MAIN` with `android.intent.category.LAUNCHER` (direct launch)
   - `application/pdf` MIME type
   - File URIs with `.pdf` extension
   - Content URIs with PDF MIME type
@@ -44,6 +47,7 @@ This is a single-activity Android app that renders PDF files using Android's nat
 - Java 8 compatibility
 - Two build variants: debug (with `.debug` suffix) and release
 - Dependencies: AndroidX AppCompat and ConstraintLayout
+- **Security Configuration**: `android:allowBackup="false"` to prevent data persistence
 
 ### Container Build System
 
