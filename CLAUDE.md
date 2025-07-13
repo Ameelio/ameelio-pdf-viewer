@@ -48,6 +48,7 @@ This is a single-activity Android app that renders PDF files using Android's nat
 - Two build variants: debug (with `.debug` suffix) and release
 - Dependencies: AndroidX AppCompat and ConstraintLayout
 - **Security Configuration**: `android:allowBackup="false"` to prevent data persistence
+- **Test Dependencies**: JUnit 4, Mockito, Robolectric for unit tests; Espresso for UI tests
 
 ### Container Build System
 
@@ -56,6 +57,14 @@ The Dockerfile creates a complete Android build environment:
 - Installs Android SDK 34 and build tools
 - Includes checksum verification for Android CLI tools
 - Configured to run `assembleDebug` and `assembleRelease` by default
+
+## Testing Commands
+
+- **Run unit tests**: `./gradlew test`
+- **Run instrumentation tests**: `./gradlew connectedAndroidTest`
+- **Run all tests**: `./gradlew check`
+- **Run security tests**: `./gradlew testDebugUnitTest --tests="com.pdfviewer.SecurityTest"`
+- **Generate test report**: `./gradlew testDebugUnitTest jacocoTestReport`
 
 ## Installation Commands
 

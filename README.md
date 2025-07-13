@@ -58,6 +58,33 @@ If you have Android SDK installed:
 ./gradlew assembleDebug assembleRelease
 ```
 
+### Testing
+
+Run the comprehensive test suite to verify functionality and security:
+
+```bash
+# Run all tests
+./gradlew check
+
+# Run unit tests only
+./gradlew test
+
+# Run instrumentation tests (requires connected device/emulator)
+./gradlew connectedAndroidTest
+
+# Run security-focused tests
+./gradlew testDebugUnitTest --tests="com.pdfviewer.SecurityTest"
+```
+
+#### Test Coverage
+
+The test suite includes:
+
+- **Unit Tests**: Activity lifecycle, security configuration, and state management
+- **UI Tests**: File picker functionality, intent handling, and view interactions
+- **Security Tests**: Data persistence prevention, no history tracking, and permission verification
+- **Integration Tests**: PDF rendering, intent filters, and MIME type handling
+
 ## Installation
 
 ### Install on Device
