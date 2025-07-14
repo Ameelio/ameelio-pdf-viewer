@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code principles
+
+- Always update documentation including README.md and CLAUDE.md when a code change is relevant to those
+- Unless specified otherwise, prefer writing tests for new code functionality
+
+
 ## Build Commands
 
 This project uses Gradle for building Android APKs with container-based builds:
