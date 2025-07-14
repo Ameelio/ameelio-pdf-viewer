@@ -27,6 +27,16 @@ RUN mkdir -p /opt/gradle && \
     wget -q https://services.gradle.org/distributions/gradle-8.0-bin.zip -O /opt/gradle/gradle-8.0-bin.zip && \
     echo "4159b938ec734a8388ce03f52aa8f3c7ed0d31f5438622545de4f83a89b79788  /opt/gradle/gradle-8.0-bin.zip" | sha256sum -c
 
+# Set Gradle user home to use cached distribution
+ENV GRADLE_USER_HOME=/root/.gradle
+
+# Pre-create gradle wrapper directory and extract distribution
+RUN mkdir -p /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61 && \
+    cp /opt/gradle/gradle-8.0-bin.zip /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61/ && \
+    cd /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61 && \
+    unzip -q gradle-8.0-bin.zip && \
+    touch gradle-8.0-bin.zip.ok
+
 # Set working directory
 WORKDIR /app
 
@@ -35,14 +45,6 @@ COPY . .
 
 # Make gradlew executable
 RUN chmod +x ./gradlew
-
-# Set Gradle user home to use cached distribution
-ENV GRADLE_USER_HOME=/root/.gradle
-
-# Pre-create gradle wrapper directory and copy cached distribution
-RUN mkdir -p /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61 && \
-    cp /opt/gradle/gradle-8.0-bin.zip /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61/ && \
-    touch /root/.gradle/wrapper/dists/gradle-8.0-bin/cf74e924e60763a5b9e65370c5c82e61/gradle-8.0-bin.zip.ok
 
 # Command to run when container starts
 CMD ["./gradlew", "assembleDebug", "assembleRelease"]
