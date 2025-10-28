@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class PdfViewerActivity extends AppCompatActivity {
@@ -353,50 +354,36 @@ public class PdfViewerActivity extends AppCompatActivity {
         int keepEnd = Math.min(pdfRenderer.getPageCount() - 1, lastVisible + 2);
 
         // Remove cached pages outside the keep range
-        Map<Integer, Bitmap> toRemove = new HashMap<>();
-        for (Map.Entry<Integer, Bitmap> entry : bitmapCache.entrySet()) {
+        // BUT DON'T RECYCLE - just remove from cache
+        // Android will handle bitmap memory automatically
+        for (Iterator<Map.Entry<Integer, Bitmap>> iterator = bitmapCache.entrySet().iterator(); iterator.hasNext();) {
+            Map.Entry<Integer, Bitmap> entry = iterator.next();
             int pageIndex = entry.getKey();
             if (pageIndex < keepStart || pageIndex > keepEnd) {
-                toRemove.put(pageIndex, entry.getValue());
+                Log.d(TAG, "Removing page " + pageIndex + " from cache (outside keep range " +
+                        keepStart + "-" + keepEnd + ")");
+                iterator.remove();
+                // DO NOT call bitmap.recycle() here - it may still be displayed
             }
         }
 
-        if (!toRemove.isEmpty()) {
-            Log.d(TAG, "Cleaning up " + toRemove.size() + " distant pages. Keeping pages " +
-                    keepStart + "-" + keepEnd);
-
-            for (Map.Entry<Integer, Bitmap> entry : toRemove.entrySet()) {
-                Bitmap bitmap = entry.getValue();
-                if (bitmap != null && !bitmap.isRecycled()) {
-                    bitmap.recycle();
-                }
-                bitmapCache.remove(entry.getKey());
-            }
-
-            System.gc();
-            logMemoryInfo("After cleanup");
-        }
+        logMemoryInfo("After cleanup");
     }
 
     private void cleanupOldestCacheEntry() {
         if (bitmapCache.isEmpty()) return;
 
         // Simple cleanup: remove first entry
+        // DO NOT recycle - bitmap may still be displayed
         Integer firstKey = bitmapCache.keySet().iterator().next();
-        Bitmap bitmap = bitmapCache.remove(firstKey);
-        if (bitmap != null && !bitmap.isRecycled()) {
-            bitmap.recycle();
-            Log.d(TAG, "Recycled bitmap for page " + firstKey);
-        }
+        bitmapCache.remove(firstKey);
+        Log.d(TAG, "Removed page " + firstKey + " from cache (cache full)");
     }
 
     private void clearBitmapCache() {
         Log.d(TAG, "Clearing entire bitmap cache (" + bitmapCache.size() + " entries)");
-        for (Bitmap bitmap : bitmapCache.values()) {
-            if (bitmap != null && !bitmap.isRecycled()) {
-                bitmap.recycle();
-            }
-        }
+        // Just clear the cache - don't recycle bitmaps as they may still be displayed
+        // Android's garbage collector will handle bitmap cleanup when they're no longer referenced
         bitmapCache.clear();
     }
 
