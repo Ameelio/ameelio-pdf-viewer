@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResult;
@@ -33,6 +34,9 @@ public class PdfViewerActivity extends AppCompatActivity {
     private static final String TAG = "PdfViewerActivity";
 
     private Button selectFileButton;
+    private ImageButton resetZoomButton;
+    private ImageButton zoomInButton;
+    private ImageButton zoomOutButton;
     private RecyclerView recyclerView;
     private TextView errorText;
     private PdfRenderer pdfRenderer;
@@ -46,6 +50,10 @@ public class PdfViewerActivity extends AppCompatActivity {
     private Map<Integer, Bitmap> bitmapCache = new HashMap<>();
     private static final int MAX_CACHED_PAGES = 3;
     private static final int MAX_RENDER_DIMENSION = 2048; // Prevent huge bitmaps
+    private static final float MIN_SCALE = 0.5f;
+    private static final float MAX_SCALE = 5.0f;
+    private static final float ZOOM_STEP = 0.25f;
+    private View zoomControlsContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +63,10 @@ public class PdfViewerActivity extends AppCompatActivity {
         setupActionBar();
 
         selectFileButton = findViewById(R.id.selectFileButton);
+        resetZoomButton = findViewById(R.id.resetZoomButton);
+        zoomInButton = findViewById(R.id.zoomInButton);
+        zoomOutButton = findViewById(R.id.zoomOutButton);
+        zoomControlsContainer = findViewById(R.id.zoomControlsContainer);
         recyclerView = findViewById(R.id.pdfRecyclerView);
         errorText = findViewById(R.id.errorText);
         documentZoomController = new DocumentZoomController(recyclerView, zoomCoordinator);
@@ -88,6 +100,31 @@ public class PdfViewerActivity extends AppCompatActivity {
                 openFilePicker();
             }
         });
+
+        resetZoomButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resetZoomToDefault();
+            }
+        });
+
+        if (zoomInButton != null) {
+            zoomInButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    applyZoomDelta(ZOOM_STEP);
+                }
+            });
+        }
+
+        if (zoomOutButton != null) {
+            zoomOutButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    applyZoomDelta(-ZOOM_STEP);
+                }
+            });
+        }
 
         handleIncomingIntent(getIntent());
     }
@@ -212,6 +249,10 @@ public class PdfViewerActivity extends AppCompatActivity {
         selectFileButton.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
         errorText.setVisibility(View.GONE);
+        resetZoomButton.setVisibility(View.VISIBLE);
+        if (zoomControlsContainer != null) {
+            zoomControlsContainer.setVisibility(View.VISIBLE);
+        }
     }
 
     private void setupRecyclerView() {
@@ -247,6 +288,10 @@ public class PdfViewerActivity extends AppCompatActivity {
         recyclerView.setVisibility(View.GONE);
         errorText.setVisibility(View.VISIBLE);
         errorText.setText("Error: " + errorMessage);
+        resetZoomButton.setVisibility(View.GONE);
+        if (zoomControlsContainer != null) {
+            zoomControlsContainer.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -526,5 +571,28 @@ public class PdfViewerActivity extends AppCompatActivity {
         clearBitmapCache();
 
         closeCurrentRenderer();
+    }
+
+    private void resetZoomToDefault() {
+        if (zoomCoordinator != null) {
+            zoomCoordinator.propagateScale(null, 1f, Float.NaN, Float.NaN);
+        }
+    }
+
+    private void applyZoomDelta(float delta) {
+        if (zoomCoordinator == null) {
+            return;
+        }
+        float currentScale = zoomCoordinator.getCurrentScale();
+        float targetScale = currentScale + delta;
+        if (targetScale < MIN_SCALE) {
+            targetScale = MIN_SCALE;
+        } else if (targetScale > MAX_SCALE) {
+            targetScale = MAX_SCALE;
+        }
+        if (Math.abs(targetScale - currentScale) < 0.0001f) {
+            return;
+        }
+        zoomCoordinator.propagateScale(null, targetScale, Float.NaN, Float.NaN);
     }
 }

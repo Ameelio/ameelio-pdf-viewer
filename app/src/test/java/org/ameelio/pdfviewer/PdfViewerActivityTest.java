@@ -14,8 +14,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.content.pm.ProviderInfo;
+import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -266,6 +269,66 @@ public class PdfViewerActivityTest {
         activityWithPdf.onDestroy();
     }
 
+    @Test
+    public void testResetZoomButtonResetsScale() throws Exception {
+        File pdfFile = createTestPdfFile();
+        Uri pdfUri = registerPdfWithContentProvider(pdfFile);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, pdfUri);
+        PdfViewerActivity activityWithPdf = Robolectric.buildActivity(PdfViewerActivity.class, intent)
+                .create()
+                .resume()
+                .get();
+
+        ImageButton resetZoomButton = activityWithPdf.findViewById(R.id.resetZoomButton);
+        assertNotNull("Reset zoom button should exist", resetZoomButton);
+        assertEquals("Reset zoom button should be visible when a PDF is open",
+                View.VISIBLE, resetZoomButton.getVisibility());
+
+        ZoomCoordinator zoomCoordinator = getZoomCoordinator(activityWithPdf);
+        zoomCoordinator.propagateScale(null, 2f, Float.NaN, Float.NaN);
+        assertEquals("Scale should update before reset", 2f, zoomCoordinator.getCurrentScale(), 0.0001f);
+
+        resetZoomButton.performClick();
+
+        assertEquals("Reset zoom button should restore scale to default",
+                1f, zoomCoordinator.getCurrentScale(), 0.0001f);
+
+        activityWithPdf.onDestroy();
+    }
+
+    @Test
+    public void testZoomButtonsAdjustScale() throws Exception {
+        File pdfFile = createTestPdfFile();
+        Uri pdfUri = registerPdfWithContentProvider(pdfFile);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, pdfUri);
+        PdfViewerActivity activityWithPdf = Robolectric.buildActivity(PdfViewerActivity.class, intent)
+                .create()
+                .resume()
+                .get();
+
+        ImageButton zoomInButton = activityWithPdf.findViewById(R.id.zoomInButton);
+        ImageButton zoomOutButton = activityWithPdf.findViewById(R.id.zoomOutButton);
+        assertNotNull("Zoom in button should exist", zoomInButton);
+        assertNotNull("Zoom out button should exist", zoomOutButton);
+        assertEquals("Zoom in button should be visible", View.VISIBLE, zoomInButton.getVisibility());
+        assertEquals("Zoom out button should be visible", View.VISIBLE, zoomOutButton.getVisibility());
+
+        ZoomCoordinator zoomCoordinator = getZoomCoordinator(activityWithPdf);
+        assertEquals("Initial scale should be default", 1f, zoomCoordinator.getCurrentScale(), 0.0001f);
+
+        float zoomStep = getZoomStep();
+
+        zoomInButton.performClick();
+        assertEquals("Zoom in should increase scale", 1f + zoomStep, zoomCoordinator.getCurrentScale(), 0.0001f);
+
+        zoomOutButton.performClick();
+        assertEquals("Zoom out should decrease scale back to default", 1f, zoomCoordinator.getCurrentScale(), 0.0001f);
+
+        activityWithPdf.onDestroy();
+    }
+
     @SuppressWarnings("unchecked")
     private Map<Integer, Bitmap> getBitmapCache(PdfViewerActivity activity) throws Exception {
         Field bitmapCacheField = PdfViewerActivity.class.getDeclaredField("bitmapCache");
@@ -277,6 +340,42 @@ public class PdfViewerActivityTest {
         Field rendererField = PdfViewerActivity.class.getDeclaredField("pdfRenderer");
         rendererField.setAccessible(true);
         return (PdfRenderer) rendererField.get(activity);
+    }
+
+    private ZoomCoordinator getZoomCoordinator(PdfViewerActivity activity) throws Exception {
+        Field coordinatorField = PdfViewerActivity.class.getDeclaredField("zoomCoordinator");
+        coordinatorField.setAccessible(true);
+        return (ZoomCoordinator) coordinatorField.get(activity);
+    }
+
+    private float getZoomStep() throws Exception {
+        Field zoomStepField = PdfViewerActivity.class.getDeclaredField("ZOOM_STEP");
+        zoomStepField.setAccessible(true);
+        return zoomStepField.getFloat(null);
+    }
+
+    @Test
+    @Config(qualifiers = "port")
+    public void testZoomControlsHorizontalInPortrait() {
+        PdfViewerActivity activity = Robolectric.buildActivity(PdfViewerActivity.class)
+                .create()
+                .get();
+        LinearLayout container = activity.findViewById(R.id.zoomControlsContainer);
+        assertNotNull("Zoom controls container should exist", container);
+        assertEquals("Zoom controls should be horizontal in portrait",
+                LinearLayout.HORIZONTAL, container.getOrientation());
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void testZoomControlsVerticalInLandscape() {
+        PdfViewerActivity activity = Robolectric.buildActivity(PdfViewerActivity.class)
+                .create()
+                .get();
+        LinearLayout container = activity.findViewById(R.id.zoomControlsContainer);
+        assertNotNull("Zoom controls container should exist", container);
+        assertEquals("Zoom controls should be vertical in landscape",
+                LinearLayout.VERTICAL, container.getOrientation());
     }
 
     private Uri registerPdfWithContentProvider(File pdfFile) {

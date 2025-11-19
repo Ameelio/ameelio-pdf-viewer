@@ -29,8 +29,8 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
         android:visibility="gone">
 
         <ImageButton
@@ -46,7 +46,7 @@
             android:id="@+id/zoomOutButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:background="@android:color/transparent"
             android:contentDescription="@string/zoom_out"
             android:padding="8dp"
@@ -56,7 +56,7 @@
             android:id="@+id/resetZoomButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:background="@android:color/transparent"
             android:contentDescription="@string/reset_zoom"
             android:padding="8dp"
