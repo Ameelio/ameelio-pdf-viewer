@@ -1,5 +1,6 @@
 FROM docker.io/eclipse-temurin:17-jdk AS gradle-cache
 WORKDIR /cache
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false"
 COPY gradlew gradlew
 COPY gradle gradle
 RUN chmod +x gradlew && ./gradlew --no-daemon --version
@@ -16,6 +17,7 @@ RUN apt-get update && apt-get install -y \
 ENV ANDROID_HOME=/opt/android-sdk
 ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 ENV GRADLE_USER_HOME=/root/.gradle
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false"
 
 # Seed Gradle wrapper cache from the previous stage
 COPY --from=gradle-cache /root/.gradle /root/.gradle
@@ -42,4 +44,4 @@ COPY . .
 RUN chmod +x ./gradlew
 
 # Command to run when container starts
-CMD ["./gradlew", "assembleDebug", "assembleRelease"]
+CMD ["./gradlew", "--no-daemon", "assembleDebug", "assembleRelease"]
