@@ -87,12 +87,7 @@ public class PdfViewerActivity extends AppCompatActivity {
             }
         });
 
-        Intent intent = getIntent();
-        Uri pdfUri = intent.getData();
-
-        if (pdfUri != null) {
-            openPdf(pdfUri);
-        }
+        handleIncomingIntent(getIntent());
     }
 
     private void setupActionBar() {
@@ -128,28 +123,57 @@ public class PdfViewerActivity extends AppCompatActivity {
         filePickerLauncher.launch(intent);
     }
 
+    private void handleIncomingIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        Uri pdfUri = intent.getData();
+        if (pdfUri != null) {
+            openPdf(pdfUri);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null) {
+            setIntent(intent);
+            handleIncomingIntent(intent);
+        }
+    }
+
     private void openPdf(Uri uri) {
         Log.i(TAG, "Attempting to open PDF: " + uri);
         logMemoryInfo("Before opening PDF");
 
+        ParcelFileDescriptor newParcelFileDescriptor = null;
+        PdfRenderer newPdfRenderer = null;
+        long openedFileSizeBytes = -1;
+
         try {
-            parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
-            if (parcelFileDescriptor != null) {
-                long fileSize = parcelFileDescriptor.getStatSize();
-                Log.i(TAG, "PDF file size: " + fileSize + " bytes (" + (fileSize / 1024 / 1024) + " MB)");
-
-                pdfRenderer = new PdfRenderer(parcelFileDescriptor);
-                int pageCount = pdfRenderer.getPageCount();
-                Log.i(TAG, "PDF opened successfully. Pages: " + pageCount);
-                logMemoryInfo("After opening PDF");
-
-                hideFileSelector();
-                setupRecyclerView();
-            } else {
+            newParcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
+            if (newParcelFileDescriptor == null) {
                 String errorMsg = "Failed to open file descriptor for PDF";
                 Log.e(TAG, errorMsg);
                 showError(errorMsg);
+                return;
             }
+
+            openedFileSizeBytes = newParcelFileDescriptor.getStatSize();
+            Log.i(TAG, "PDF file size: " + openedFileSizeBytes + " bytes (" +
+                    (openedFileSizeBytes / 1024 / 1024) + " MB)");
+
+            newPdfRenderer = new PdfRenderer(newParcelFileDescriptor);
+            int pageCount = newPdfRenderer.getPageCount();
+            Log.i(TAG, "PDF opened successfully. Pages: " + pageCount);
+
+            replaceRenderer(newPdfRenderer, newParcelFileDescriptor);
+            newPdfRenderer = null;
+            newParcelFileDescriptor = null;
+
+            logMemoryInfo("After opening PDF");
+            hideFileSelector();
+            setupRecyclerView();
         } catch (FileNotFoundException e) {
             String errorMsg = "PDF file not found: " + e.getMessage();
             Log.e(TAG, errorMsg, e);
@@ -164,7 +188,7 @@ public class PdfViewerActivity extends AppCompatActivity {
             showError(errorMsg);
         } catch (OutOfMemoryError e) {
             String errorMsg = "Out of memory loading PDF. File may be too large.\nSize: " +
-                    (parcelFileDescriptor != null ? (parcelFileDescriptor.getStatSize() / 1024 / 1024) + " MB" : "unknown");
+                    (openedFileSizeBytes > 0 ? (openedFileSizeBytes / 1024 / 1024) + " MB" : "unknown");
             Log.e(TAG, errorMsg, e);
             logMemoryInfo("After OOM");
             showError(errorMsg);
@@ -176,6 +200,9 @@ public class PdfViewerActivity extends AppCompatActivity {
             String errorMsg = "Unexpected error opening PDF: " + e.getClass().getSimpleName() + ": " + e.getMessage();
             Log.e(TAG, errorMsg, e);
             showError(errorMsg);
+        } finally {
+            closeQuietly(newPdfRenderer);
+            closeQuietly(newParcelFileDescriptor);
         }
     }
 
@@ -192,8 +219,10 @@ public class PdfViewerActivity extends AppCompatActivity {
 
             adapter = new PdfPageAdapter(zoomCoordinator);
             recyclerView.setAdapter(adapter);
+            recyclerView.scrollToPosition(0);
             zoomCoordinator.propagateScale(null, 1f, Float.NaN, Float.NaN);
 
+            recyclerView.clearOnScrollListeners();
             // Add scroll listener for cache management
             recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
@@ -377,7 +406,7 @@ public class PdfViewerActivity extends AppCompatActivity {
     }
 
     private void cleanupDistantPages() {
-        if (recyclerView == null || recyclerView.getLayoutManager() == null) return;
+        if (recyclerView == null || recyclerView.getLayoutManager() == null || pdfRenderer == null) return;
 
         LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         int firstVisible = layoutManager.findFirstVisibleItemPosition();
@@ -425,6 +454,55 @@ public class PdfViewerActivity extends AppCompatActivity {
         bitmapCache.clear();
     }
 
+    private void closeQuietly(PdfRenderer renderer) {
+        if (renderer != null) {
+            try {
+                renderer.close();
+            } catch (Exception e) {
+                Log.w(TAG, "Error closing PdfRenderer: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void closeQuietly(ParcelFileDescriptor descriptor) {
+        if (descriptor != null) {
+            try {
+                descriptor.close();
+            } catch (IOException e) {
+                Log.w(TAG, "Error closing ParcelFileDescriptor: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void replaceRenderer(PdfRenderer newRenderer, ParcelFileDescriptor newDescriptor) {
+        clearBitmapCache();
+        closeCurrentRenderer();
+        pdfRenderer = newRenderer;
+        parcelFileDescriptor = newDescriptor;
+    }
+
+    private void closeCurrentRenderer() {
+        if (pdfRenderer != null) {
+            try {
+                pdfRenderer.close();
+            } catch (Exception e) {
+                Log.w(TAG, "Error closing current PdfRenderer: " + e.getMessage(), e);
+            }
+            pdfRenderer = null;
+            Log.d(TAG, "PDF renderer closed");
+        }
+
+        if (parcelFileDescriptor != null) {
+            try {
+                parcelFileDescriptor.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing file descriptor: " + e.getMessage(), e);
+            }
+            parcelFileDescriptor = null;
+            Log.d(TAG, "File descriptor closed");
+        }
+    }
+
     private void logMemoryInfo(String context) {
         Runtime runtime = Runtime.getRuntime();
         long usedMemory = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024;
@@ -445,17 +523,6 @@ public class PdfViewerActivity extends AppCompatActivity {
         }
         clearBitmapCache();
 
-        try {
-            if (pdfRenderer != null) {
-                pdfRenderer.close();
-                Log.d(TAG, "PDF renderer closed");
-            }
-            if (parcelFileDescriptor != null) {
-                parcelFileDescriptor.close();
-                Log.d(TAG, "File descriptor closed");
-            }
-        } catch (IOException e) {
-            Log.e(TAG, "Error closing resources: " + e.getMessage(), e);
-        }
+        closeCurrentRenderer();
     }
 }

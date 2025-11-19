@@ -1,20 +1,39 @@
 package org.ameelio.pdfviewer;
 
+import android.content.ContentProvider;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
+import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.widget.Button;
-import android.widget.ScrollView;
 import android.widget.TextView;
+import android.content.pm.ProviderInfo;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowContentResolver;
 
 import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
@@ -24,6 +43,7 @@ import static org.robolectric.Shadows.shadowOf;
 public class PdfViewerActivityTest {
 
     private PdfViewerActivity activity;
+    private static final String TEST_PDF_AUTHORITY = "org.ameelio.pdfviewer.test.provider";
 
     @Before
     public void setUp() {
@@ -202,5 +222,125 @@ public class PdfViewerActivityTest {
         // Both intents should be resolvable by the activity
         assertNotNull("VIEW intent should be handled", viewIntent.getAction());
         assertNotNull("MAIN intent should be handled", mainIntent.getAction());
+    }
+
+    @Test
+    public void testOnNewIntentReplacesDocumentAndClearsCache() throws Exception {
+        Map<Integer, Bitmap> bitmapCache = getBitmapCache(activity);
+        bitmapCache.put(0, Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888));
+        assertFalse("Precondition: bitmap cache should have entries", bitmapCache.isEmpty());
+
+        File pdfFile = createTestPdfFile();
+        Uri pdfUri = registerPdfWithContentProvider(pdfFile);
+
+        Intent newIntent = new Intent(Intent.ACTION_VIEW, pdfUri);
+        activity.onNewIntent(newIntent);
+
+        Map<Integer, Bitmap> updatedCache = getBitmapCache(activity);
+        assertTrue("Bitmap cache should be cleared before rendering new PDF", updatedCache.isEmpty());
+        assertEquals("Activity intent should be replaced when a new one arrives", newIntent, activity.getIntent());
+
+        PdfRenderer pdfRenderer = getPdfRenderer(activity);
+        assertNotNull("PDF renderer should be initialized after handling new intent", pdfRenderer);
+        assertTrue("Loaded PDF should report at least one page", pdfRenderer.getPageCount() > 0);
+
+        activity.onDestroy();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Integer, Bitmap> getBitmapCache(PdfViewerActivity activity) throws Exception {
+        Field bitmapCacheField = PdfViewerActivity.class.getDeclaredField("bitmapCache");
+        bitmapCacheField.setAccessible(true);
+        return (Map<Integer, Bitmap>) bitmapCacheField.get(activity);
+    }
+
+    private PdfRenderer getPdfRenderer(PdfViewerActivity activity) throws Exception {
+        Field rendererField = PdfViewerActivity.class.getDeclaredField("pdfRenderer");
+        rendererField.setAccessible(true);
+        return (PdfRenderer) rendererField.get(activity);
+    }
+
+    private Uri registerPdfWithContentProvider(File pdfFile) {
+        TestPdfProvider provider = new TestPdfProvider(pdfFile);
+        ProviderInfo providerInfo = new ProviderInfo();
+        providerInfo.authority = TEST_PDF_AUTHORITY;
+        provider.attachInfo(RuntimeEnvironment.getApplication(), providerInfo);
+        ShadowContentResolver shadowContentResolver =
+                shadowOf(RuntimeEnvironment.getApplication().getContentResolver());
+        shadowContentResolver.registerProviderInternal(TEST_PDF_AUTHORITY, provider);
+
+        return new Uri.Builder()
+                .scheme("content")
+                .authority(TEST_PDF_AUTHORITY)
+                .appendPath("documents")
+                .appendPath("1")
+                .build();
+    }
+
+    private File createTestPdfFile() throws IOException {
+        File cacheDir = RuntimeEnvironment.getApplication().getCacheDir();
+        File pdfFile = File.createTempFile("test-doc", ".pdf", cacheDir);
+
+        PdfDocument document = new PdfDocument();
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(100, 100, 1).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+
+        Canvas canvas = page.getCanvas();
+        Paint paint = new Paint();
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(12f);
+        canvas.drawText("Hello PDF", 10, 50, paint);
+        document.finishPage(page);
+
+        try (FileOutputStream outputStream = new FileOutputStream(pdfFile)) {
+            document.writeTo(outputStream);
+        } finally {
+            document.close();
+        }
+
+        return pdfFile;
+    }
+
+    private static class TestPdfProvider extends ContentProvider {
+        private final File pdfFile;
+
+        TestPdfProvider(File pdfFile) {
+            this.pdfFile = pdfFile;
+        }
+
+        @Override
+        public boolean onCreate() {
+            return true;
+        }
+
+        @Override
+        public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+            return null;
+        }
+
+        @Override
+        public String getType(Uri uri) {
+            return "application/pdf";
+        }
+
+        @Override
+        public Uri insert(Uri uri, ContentValues values) {
+            return null;
+        }
+
+        @Override
+        public int delete(Uri uri, String selection, String[] selectionArgs) {
+            return 0;
+        }
+
+        @Override
+        public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+            return 0;
+        }
+
+        @Override
+        public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+            return ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY);
+        }
     }
 }
