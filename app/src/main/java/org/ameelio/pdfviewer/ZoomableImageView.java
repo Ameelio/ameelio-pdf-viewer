@@ -35,6 +35,7 @@ public class ZoomableImageView extends AppCompatImageView implements
     private boolean parentInterceptDisabled = false;
     private float lastTouchRawX;
     private float lastTouchRawY;
+    private boolean multiTouchActive = false;
 
     public ZoomableImageView(Context context) {
         super(context);
@@ -93,10 +94,14 @@ public class ZoomableImageView extends AppCompatImageView implements
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                multiTouchActive = false;
+                requestParentDisallowIntercept(false);
                 lastTouchRawX = event.getRawX();
                 lastTouchRawY = event.getRawY();
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
+                multiTouchActive = event.getPointerCount() > 1;
+                requestParentDisallowIntercept(true);
                 lastTouchRawX = event.getRawX();
                 lastTouchRawY = event.getRawY();
                 break;
@@ -117,13 +122,21 @@ public class ZoomableImageView extends AppCompatImageView implements
                     lastTouchRawY = event.getRawY();
                 }
                 break;
+            case MotionEvent.ACTION_POINTER_UP:
+                int remainingPointers = event.getPointerCount() - 1;
+                multiTouchActive = remainingPointers > 1;
+                if (!multiTouchActive && !scaleDetector.isInProgress()) {
+                    requestParentDisallowIntercept(false);
+                }
+                break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
+                multiTouchActive = false;
                 requestParentDisallowIntercept(false);
                 break;
         }
 
-        return scaleDetector.isInProgress();
+        return scaleDetector.isInProgress() || multiTouchActive;
     }
 
     @Override
@@ -160,7 +173,9 @@ public class ZoomableImageView extends AppCompatImageView implements
 
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {
-        requestParentDisallowIntercept(false);
+        if (!multiTouchActive) {
+            requestParentDisallowIntercept(false);
+        }
     }
 
     @Override

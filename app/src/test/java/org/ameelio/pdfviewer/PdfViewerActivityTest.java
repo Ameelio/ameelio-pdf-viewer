@@ -247,6 +247,25 @@ public class PdfViewerActivityTest {
         activity.onDestroy();
     }
 
+    @Test
+    public void testRecyclerViewDisablesMotionEventSplitting() throws Exception {
+        File pdfFile = createTestPdfFile();
+        Uri pdfUri = registerPdfWithContentProvider(pdfFile);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, pdfUri);
+        PdfViewerActivity activityWithPdf = Robolectric.buildActivity(PdfViewerActivity.class, intent)
+                .create()
+                .resume()
+                .get();
+
+        RecyclerView recyclerView = activityWithPdf.findViewById(R.id.pdfRecyclerView);
+        assertNotNull("RecyclerView should exist", recyclerView);
+        assertFalse("RecyclerView should keep multi-touch events unified for pinch gestures",
+                recyclerView.isMotionEventSplittingEnabled());
+
+        activityWithPdf.onDestroy();
+    }
+
     @SuppressWarnings("unchecked")
     private Map<Integer, Bitmap> getBitmapCache(PdfViewerActivity activity) throws Exception {
         Field bitmapCacheField = PdfViewerActivity.class.getDeclaredField("bitmapCache");

@@ -58,6 +58,8 @@ public class PdfViewerActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.pdfRecyclerView);
         errorText = findViewById(R.id.errorText);
         documentZoomController = new DocumentZoomController(recyclerView, zoomCoordinator);
+        // Keep multi-touch streams unified so pinch gestures spanning multiple pages are detected
+        recyclerView.setMotionEventSplittingEnabled(false);
 
         // Setup RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
