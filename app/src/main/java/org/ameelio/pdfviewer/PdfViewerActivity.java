@@ -39,6 +39,8 @@ public class PdfViewerActivity extends AppCompatActivity {
     private ParcelFileDescriptor parcelFileDescriptor;
     private ActivityResultLauncher<Intent> filePickerLauncher;
     private PdfPageAdapter adapter;
+    private final ZoomCoordinator zoomCoordinator = new ZoomCoordinator();
+    private DocumentZoomController documentZoomController;
 
     // Performance optimization variables
     private Map<Integer, Bitmap> bitmapCache = new HashMap<>();
@@ -55,6 +57,7 @@ public class PdfViewerActivity extends AppCompatActivity {
         selectFileButton = findViewById(R.id.selectFileButton);
         recyclerView = findViewById(R.id.pdfRecyclerView);
         errorText = findViewById(R.id.errorText);
+        documentZoomController = new DocumentZoomController(recyclerView, zoomCoordinator);
 
         // Setup RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -187,8 +190,9 @@ public class PdfViewerActivity extends AppCompatActivity {
             int pageCount = pdfRenderer.getPageCount();
             Log.i(TAG, "Setting up RecyclerView for " + pageCount + " pages");
 
-            adapter = new PdfPageAdapter();
+            adapter = new PdfPageAdapter(zoomCoordinator);
             recyclerView.setAdapter(adapter);
+            zoomCoordinator.propagateScale(null, 1f, Float.NaN, Float.NaN);
 
             // Add scroll listener for cache management
             recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -232,6 +236,12 @@ public class PdfViewerActivity extends AppCompatActivity {
      */
     private class PdfPageAdapter extends RecyclerView.Adapter<PdfPageAdapter.PageViewHolder> {
 
+        private final ZoomCoordinator zoomCoordinator;
+
+        PdfPageAdapter(ZoomCoordinator zoomCoordinator) {
+            this.zoomCoordinator = zoomCoordinator;
+        }
+
         @Override
         public int getItemCount() {
             return pdfRenderer != null ? pdfRenderer.getPageCount() : 0;
@@ -242,8 +252,7 @@ public class PdfViewerActivity extends AppCompatActivity {
             Log.d(TAG, "Creating new ViewHolder");
 
             ZoomableImageView imageView = new ZoomableImageView(parent.getContext());
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            imageView.setAdjustViewBounds(true);
+            imageView.setZoomCoordinator(zoomCoordinator);
 
             // Set layout params for proper sizing
             RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
@@ -431,6 +440,9 @@ public class PdfViewerActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "Activity destroying, cleaning up resources");
 
+        if (documentZoomController != null) {
+            documentZoomController.detach();
+        }
         clearBitmapCache();
 
         try {
