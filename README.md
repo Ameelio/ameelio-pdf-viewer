@@ -37,12 +37,12 @@ This PDF viewer is designed with security and simplicity in mind:
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd pdf-viewer-android
+   cd ameelio-pdf-viewer
    ```
 
 2. Run the build script:
    ```bash
-   ./build.sh
+   ./scripts/build.sh
    ```
 
    This will:
@@ -64,7 +64,7 @@ Run the comprehensive test suite to verify functionality and security:
 
 ```bash
 # Run all tests in container (recommended)
-./test.sh
+./scripts/test.sh
 
 # Run all tests locally
 ./gradlew check

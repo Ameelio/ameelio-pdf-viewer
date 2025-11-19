@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses Gradle for building Android APKs with container-based builds:
 
-- **Build APKs**: `./build.sh` - Builds both debug and release APKs using Podman container
+- **Build APKs**: `./scripts/build.sh` - Builds both debug and release APKs using Podman container
 - **Direct Gradle build**: `./gradlew assembleDebug assembleRelease` - Builds APKs directly (requires Android SDK setup)
 - **Clean build**: `./gradlew clean` - Cleans build artifacts
 
@@ -66,7 +66,7 @@ The Dockerfile creates a complete Android build environment:
 
 ## Testing Commands
 
-- **Run all tests in container**: `./test.sh` (recommended)
+- **Run all tests in container**: `./scripts/test.sh` (recommended)
 - **Run unit tests**: `./gradlew test`
 - **Run instrumentation tests**: `./gradlew connectedAndroidTest`
 - **Run all tests**: `./gradlew check`
@@ -74,7 +74,7 @@ The Dockerfile creates a complete Android build environment:
 - **Generate test report**: `./gradlew testDebugUnitTest jacocoTestReport`
 
 ### Test Script
-The `./test.sh` script provides containerized testing similar to the build process:
+The `./scripts/test.sh` script provides containerized testing similar to the build process:
 - Runs unit tests in a clean container environment
 - Extracts test reports to `./test-reports/` directory
 - Provides detailed test output and failure information

@@ -1,15 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "$REPO_ROOT"
 
 # Test script for PDF Viewer Android App
 # This script runs unit tests using Podman (rootless) and copies test reports to the main directory
-
-set -e
 
 echo "Running tests for PDF Viewer Android App..."
 
 # Build container image with Podman
 echo "Building container image..."
-podman build -t pdf-viewer-android .
+podman build -t ameelio-pdf-viewer .
 
 # Clean up any existing container with the same name
 echo "Cleaning up existing containers..."
@@ -17,7 +21,7 @@ podman rm -f pdf-viewer-test 2>/dev/null || true
 
 # Run container to execute tests (with output visible)
 echo "Running tests in container..."
-if podman run --name pdf-viewer-test pdf-viewer-android ./gradlew test testDebugUnitTest; then
+if podman run --name pdf-viewer-test ameelio-pdf-viewer ./gradlew test testDebugUnitTest; then
     # Copy test reports from container to host
     echo "Extracting test reports from container..."
     
@@ -80,6 +84,6 @@ fi
 
 echo ""
 echo "📋 Available test commands:"
-echo "  - Unit tests only: ./test.sh unit"
-echo "  - Security tests only: ./test.sh security"
-echo "  - All tests with coverage: ./test.sh coverage"
+echo "  - Unit tests only: ./scripts/test.sh unit"
+echo "  - Security tests only: ./scripts/test.sh security"
+echo "  - All tests with coverage: ./scripts/test.sh coverage"
