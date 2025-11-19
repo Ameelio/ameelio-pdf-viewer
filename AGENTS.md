@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## Development Directions
+- Prefer to use framework-provided modules whenever possible, and only write custom implementations if the built-in modules aren't sufficient to accomplish the task
+- Always write tests when making a code change, unless testing that code change doesn't make sense
+
 ## Project Structure, Architecture & Security
 - Single Android module (`app/`); keep logic in `app/src/main/java/org/ameelio/pdfviewer`, resources in `app/src/main/res`, manifest edits in `app/src/main/AndroidManifest.xml`, tests in `app/src/{test,androidTest}/java`, and container artifacts in `test-reports/`.
 - Architecture stays single-activity: `PdfViewerActivity` renders PDFs through `PdfRenderer`, streams bitmaps into a RecyclerView, and never saves state. Preserve `android:allowBackup="false"`, forbid keyboard/input widgets, and keep permissions limited to `READ_EXTERNAL_STORAGE`. Respect cache bounds (`MAX_CACHED_PAGES`, `MAX_RENDER_DIMENSION`) to avoid OOM or leaked data.
@@ -8,7 +12,7 @@
 ## Build, Test & Coverage Commands
 - `./build.sh` — container build producing `ameelio-pdf-viewer.apk` and `ameelio-pdf-viewer-debug.apk`.
 - `./gradlew assembleDebug assembleRelease` — local SDK build; add `./gradlew clean` when artifacts misbehave.
-- `./test.sh` — containerized `./gradlew check` plus security smoke tests, exporting XML/HTML to `test-reports/`.
+- `./test.sh` — containerized `./gradlew check` plus security smoke tests, exporting XML/HTML to `test-reports/`. Prefer using this script when running tests
 - `./gradlew check` — lint + unit tests; must pass before pushing.
 - `./gradlew connectedAndroidTest` — run Espresso flows on an emulator/device.
 - `./gradlew testDebugUnitTest --tests "org.ameelio.pdfviewer.SecurityTest"` and `./gradlew testDebugUnitTest jacocoTestReport` — focused security runs and coverage generation.

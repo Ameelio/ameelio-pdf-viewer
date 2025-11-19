@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -16,6 +18,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,6 +49,8 @@ public class PdfViewerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdf_viewer);
+
+        setupActionBar();
 
         selectFileButton = findViewById(R.id.selectFileButton);
         recyclerView = findViewById(R.id.pdfRecyclerView);
@@ -85,6 +90,30 @@ public class PdfViewerActivity extends AppCompatActivity {
         if (pdfUri != null) {
             openPdf(pdfUri);
         }
+    }
+
+    private void setupActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar == null) {
+            return;
+        }
+
+        View customView = LayoutInflater.from(this).inflate(R.layout.view_action_bar_header, null, false);
+        TextView titleView = customView.findViewById(R.id.actionBarTitle);
+        ImageView logoView = customView.findViewById(R.id.actionBarLogo);
+        titleView.setText(R.string.app_name);
+        logoView.setImageResource(R.mipmap.ic_launcher);
+
+        ActionBar.LayoutParams params = new ActionBar.LayoutParams(
+                ActionBar.LayoutParams.WRAP_CONTENT,
+                ActionBar.LayoutParams.MATCH_PARENT);
+        params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        actionBar.setDisplayUseLogoEnabled(false);
+        actionBar.setCustomView(customView, params);
     }
 
     private void openFilePicker() {

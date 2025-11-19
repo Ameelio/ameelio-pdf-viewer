@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,13 +40,11 @@ public class PdfViewerActivityTest {
     public void testInitialViewState_NoIntent() {
         // When activity is created without PDF intent, file selector should be visible
         Button selectFileButton = activity.findViewById(R.id.selectFileButton);
-        android.widget.HorizontalScrollView horizontalScrollView = activity.findViewById(R.id.horizontalScrollView);
-        ScrollView scrollView = activity.findViewById(R.id.scrollView);
         TextView errorText = activity.findViewById(R.id.errorText);
+        RecyclerView recyclerView = activity.findViewById(R.id.pdfRecyclerView);
 
         assertNotNull("Select file button should exist", selectFileButton);
-        assertNotNull("Horizontal scroll view should exist", horizontalScrollView);
-        assertNotNull("Scroll view should exist", scrollView);
+        assertNotNull("Recycler view should exist", recyclerView);
         assertNotNull("Error text should exist", errorText);
     }
 

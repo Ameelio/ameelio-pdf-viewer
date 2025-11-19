@@ -5,3 +5,4 @@ test-reports
 .idea/
 .gradle/
 app/build/
+.gradle-cache
