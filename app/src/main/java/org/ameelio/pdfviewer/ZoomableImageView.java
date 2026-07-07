@@ -21,8 +21,8 @@ public class ZoomableImageView extends AppCompatImageView implements
         ZoomCoordinator.ZoomListener {
 
     private static final String TAG = "ZoomableImageView";
-    private static final float MIN_SCALE = 0.5f;
-    private static final float MAX_SCALE = 5.0f;
+    private static final float MIN_SCALE = ZoomCoordinator.MIN_SCALE;
+    private static final float MAX_SCALE = ZoomCoordinator.MAX_SCALE;
     private static final AtomicInteger NEXT_DEBUG_ID = new AtomicInteger(1);
 
     private final int debugId = NEXT_DEBUG_ID.getAndIncrement();

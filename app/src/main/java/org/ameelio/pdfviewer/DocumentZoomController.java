@@ -14,9 +14,15 @@ class DocumentZoomController implements ZoomCoordinator.ZoomListener, ZoomCoordi
     private float translationX = 0f;
     private float translationY = 0f;
 
+    private final View.OnLayoutChangeListener layoutChangeListener =
+            (v, l, t, r, b, ol, ot, or, ob) -> applyTransforms();
+
     DocumentZoomController(View target, ZoomCoordinator coordinator) {
         this.target = target;
         this.coordinator = coordinator;
+        // Re-apply once the target gains real bounds (it may be GONE/unmeasured now)
+        // and keep translations clamped when its size changes later.
+        target.addOnLayoutChangeListener(layoutChangeListener);
         coordinator.register(this);
         coordinator.registerPanListener(this);
     }
@@ -60,13 +66,14 @@ class DocumentZoomController implements ZoomCoordinator.ZoomListener, ZoomCoordi
     }
 
     void detach() {
+        target.removeOnLayoutChangeListener(layoutChangeListener);
         coordinator.unregister(this);
         coordinator.unregisterPanListener(this);
     }
 
     private void applyTransforms() {
         if (target.getWidth() == 0 || target.getHeight() == 0) {
-            target.post(this::applyTransforms);
+            // Not laid out yet; layoutChangeListener re-applies once bounds exist.
             return;
         }
         clampTranslations();

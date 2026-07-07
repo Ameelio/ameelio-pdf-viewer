@@ -6,3 +6,4 @@ test-reports
 .gradle/
 app/build/
 .gradle-cache
+.claude/settings.local.json

@@ -50,8 +50,8 @@ public class PdfViewerActivity extends AppCompatActivity {
     private Map<Integer, Bitmap> bitmapCache = new HashMap<>();
     private static final int MAX_CACHED_PAGES = 3;
     private static final int MAX_RENDER_DIMENSION = 2048; // Prevent huge bitmaps
-    private static final float MIN_SCALE = 0.5f;
-    private static final float MAX_SCALE = 5.0f;
+    private static final float MIN_SCALE = ZoomCoordinator.MIN_SCALE;
+    private static final float MAX_SCALE = ZoomCoordinator.MAX_SCALE;
     private static final float ZOOM_STEP = 0.25f;
     private View zoomControlsContainer;
 
@@ -72,6 +72,8 @@ public class PdfViewerActivity extends AppCompatActivity {
         documentZoomController = new DocumentZoomController(recyclerView, zoomCoordinator);
         // Keep multi-touch streams unified so pinch gestures spanning multiple pages are detected
         recyclerView.setMotionEventSplittingEnabled(false);
+        // Detect pinches at the RecyclerView level so zoom works even mid-scroll
+        recyclerView.addOnItemTouchListener(new PinchZoomItemTouchListener(recyclerView, zoomCoordinator));
 
         // Setup RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -299,6 +301,7 @@ public class PdfViewerActivity extends AppCompatActivity {
         // Do not save any state - security requirement
         // This prevents any user input or file selection from being persisted
         super.onSaveInstanceState(new Bundle());
+        outState.clear();
     }
 
     @Override
