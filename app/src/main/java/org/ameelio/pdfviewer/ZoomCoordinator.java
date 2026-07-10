@@ -9,6 +9,9 @@ import java.util.WeakHashMap;
  */
 class ZoomCoordinator {
 
+    static final float MIN_SCALE = 0.5f;
+    static final float MAX_SCALE = 5.0f;
+
     interface ZoomListener {
         void onGlobalScaleChanged(ZoomableImageView source, float scale, float focusX, float focusY);
     }

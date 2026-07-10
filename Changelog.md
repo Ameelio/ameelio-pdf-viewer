@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed pinch-to-zoom not working when the gesture starts during or after a scroll
+  - Previously, once a finger dragged far enough to start scrolling, RecyclerView took over the gesture and the per-page views never saw the second finger, so the pinch was ignored; only a perfectly simultaneous two-finger pinch worked
+  - Pinch detection now also runs at the RecyclerView level (`PinchZoomItemTouchListener`), which sees every touch event regardless of scroll state
+- Fixed `DocumentZoomController` re-posting itself every frame while no PDF is open (the RecyclerView has no size yet); it now waits for a layout change instead, which also re-clamps the zoom translation when the view's size changes
+- Fixed the unit test suite silently not running
+  - Robolectric 4.9 does not support the configured SDK 34, so every test was reported as "skipped" while the build still passed; upgraded to Robolectric 4.11.1
+  - Enabled `includeAndroidResources` so Robolectric tests can create the real activity (previously failed with a missing AppCompat theme)
+  - Excluded Robolectric's `nativeruntime-dist-compat` from Jetifier, which cannot transform it
 
 ## [1.1] - 2025-10-28
 
