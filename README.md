@@ -116,7 +116,7 @@ The test suite includes:
 ## Technical Details
 
 - **Target SDK**: Android 14 (API 34)
-- **Minimum SDK**: Android 5.0 (API 21)
+- **Minimum SDK**: Android 14 (API 34)
 - **Permissions**: `READ_EXTERNAL_STORAGE` only
 - **Architecture**: Single activity with native PDF rendering
 
