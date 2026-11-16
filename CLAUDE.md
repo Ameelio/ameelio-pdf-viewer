@@ -69,7 +69,7 @@ The activity's zoom in/out/reset buttons drive the same coordinator (`applyZoomD
 
 ## Build Configuration
 
-- Target/compile SDK 34, min SDK 21, Java 8 compatibility, AGP 8.1.4.
+- Target/compile SDK 34, min SDK 34, Java 17 compatibility, AGP 9.5.1 (Kotlin DSL build files).
 - Dependencies: AndroidX AppCompat, ConstraintLayout, RecyclerView — nothing else at runtime.
 - Debug builds append `.debug` to the application id, so debug and release can be installed side by side (the reinstall scripts uninstall both).
 - Release builds are signed with the debug key (`signingConfig signingConfigs.debug`) — suitable for sideloading, not store distribution.

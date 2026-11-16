@@ -32,7 +32,7 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
 
 # Accept licenses and install SDK components
 RUN yes | sdkmanager --licenses && \
-    sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+    sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "build-tools;36.0.0"
 
 # Set working directory
 WORKDIR /app
