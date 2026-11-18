@@ -1,29 +1,22 @@
-// Build-tool classpath only (AGP's transitive deps; none of these ship in the APK). They resolve to
-// older versions than the Dependabot advisories require, so force the patched ones. Drop an entry
-// once the AGP in use resolves to at least that version on its own.
+// Patched versions for the build-tool classpath are defined in settings.gradle.kts.
 buildscript {
-    val patched = mapOf(
-        "org.bouncycastle:bcprov-jdk18on" to "1.85",
-        "org.bouncycastle:bcpkix-jdk18on" to "1.85",
-        "com.google.guava:guava" to "33.7.2-jre",
-        "org.bitbucket.b_c:jose4j" to "0.9.6",
-        "org.jdom:jdom2" to "2.0.6.1",
-        "org.apache.commons:commons-lang3" to "3.18.0",
-        "com.google.protobuf:protobuf-java" to "3.25.5",
-        "com.google.protobuf:protobuf-kotlin" to "3.25.5",
-    )
-    val nettyVersion = "4.1.140.Final"
+    @Suppress("UNCHECKED_CAST")
+    val force = gradle.extra["forcePatchedBuildTools"] as Action<DependencyResolveDetails>
     configurations.classpath {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "io.netty") {
-                useVersion(nettyVersion)
-            } else {
-                patched["${requested.group}:${requested.name}"]?.let { useVersion(it) }
-            }
-        }
+        resolutionStrategy.eachDependency(force)
     }
 }
 
 plugins {
     id("com.android.application") version "9.5.1" apply false
+}
+
+// AGP also resolves its own tool configurations (e.g. androidLintTool) outside the buildscript
+// classpath; the dependency graph reports those too, so force the patched versions everywhere.
+@Suppress("UNCHECKED_CAST")
+val forcePatched = gradle.extra["forcePatchedBuildTools"] as Action<DependencyResolveDetails>
+allprojects {
+    configurations.configureEach {
+        resolutionStrategy.eachDependency(forcePatched)
+    }
 }
