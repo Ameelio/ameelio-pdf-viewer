@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security (build tooling only, nothing ships in the APK): force the patched dependency versions
   from `settings.gradle.kts` so they also apply to the dependency graph submitted to GitHub, and
   add Kotlin Gradle Plugin 2.4.21 and Apache HttpClient 4.5.14.
+- Security (build tooling only): apply the same forced versions to every project configuration,
+  not just the buildscript classpath, so AGP's lint tool classpath no longer resolves vulnerable
+  Bouncy Castle, Guava, commons-lang3 and HttpClient.
+
+### Fixed
+
+- Lint `AppLinkUrlError`: add `android:host="*"` to the `file://` PDF intent filter.
 
 ## [1.1.2] - 2026-11-16
 
